@@ -6,21 +6,28 @@ from adafruit_display_text import label
 
 from goose import Goose
 
+from parallax import Parallax, ParallaxFrame
+
 pygame.init()
 
 display = PyGameDisplay(width=128, height=128)
 splash = displayio.Group()
 display.show(splash)
 
-forestBackground = displayio.OnDiskBitmap("assets/bg_hill.bmp")
-bgSprite = displayio.TileGrid(forestBackground, pixel_shader=forestBackground.pixel_shader)
-splash.append(bgSprite)
+mainParallax = Parallax(
+    [
+        ParallaxFrame("assets/bg_sky.bmp", 0.1),
+        ParallaxFrame("assets/bg_hill.bmp", 0.3),
+        ParallaxFrame("assets/ground.bmp", 1),
+    ]
+)
+
+for frame in mainParallax.frames:
+    splash.append(frame.sprite)
+    splash.append(frame.spriteNext)
 
 goose = Goose()
-
 splash.append(goose.sprite)
-
-SPEED = 3
 
 while True:
     for event in pygame.event.get():
@@ -32,14 +39,14 @@ while True:
 
     if keys[pygame.K_LEFT]:
         goose.walking = True
-        goose.sprite.x -= SPEED
+        goose.x -= goose.SPEED
         goose.sprite.flip_x = False
         
         goose.updateGooseWalk()
     
     elif keys[pygame.K_RIGHT]:
         goose.walking = True
-        goose.sprite.x += SPEED
+        goose.x += goose.SPEED
         goose.sprite.flip_x = True
 
         goose.updateGooseWalk()
@@ -48,5 +55,7 @@ while True:
 
     
     goose.sprite[0] = goose.frame()
+    
+    mainParallax.updatePosition(-goose.x)
 
     time.sleep(0.1)

@@ -9,12 +9,16 @@ class Goose:
             width=1, height=1,
             tile_width=32, tile_height=32,
             default_tile=0,
-            x=int(64 - 16), y=int(64 - 16)
+            x=int(64 - 16), y=64
         )
-
+        
+        self.x = 0
+        
         self.walking = False
         self.walkFrame = 0
-
+        
+        self.SPEED = 5
+    
     def updateGooseWalk(self):
         self.walkFrame += 1
 
