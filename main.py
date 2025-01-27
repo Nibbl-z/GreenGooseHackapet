@@ -15,6 +15,7 @@ from instances.button_indicator import ButtonIndicator
 from instances.fade import Fade
 
 import timer
+from dialogue import Dialogue
 
 pygame.init()
 
@@ -23,6 +24,7 @@ splash = displayio.Group()
 display.show(splash)
 
 fade = Fade()
+dialogue = Dialogue()
 
 global currentMap
 currentMap = "outside_hotel"
@@ -41,16 +43,19 @@ def enterHotel():
 
 def exitHotel():
     global currentMap
-
+    
     def afterFade():
         global currentMap
-
+        
         fade.direction = -1
         currentMap = "outside_hotel"
         goose.x = 120
     
     fade.direction = 1
     timer.createAndStartTimer(6, afterFade)
+
+def stellaTalk():
+    dialogue.speak("stella", ["are you,, the\ngreen goose??", "wowwww", "thats pretty\nawesome sauce", "uhmmm", "ya"])
 
 maps = {
     "outside_hotel" : Map(
@@ -64,7 +69,7 @@ maps = {
             Interactable(110, 40, enterHotel)
         ],
         -100000, 
-        400
+        100000
     ),
     
     "inside_hotel": Map(
@@ -72,7 +77,8 @@ maps = {
             ParallaxFrame("assets/hotel_floor.bmp", 1, False)
         ]),
         [
-            Interactable(-15, 30, exitHotel)
+            Interactable(-15, 30, exitHotel),
+            Interactable(-40, 10, stellaTalk)
         ],
         -50, 
         400
@@ -102,11 +108,28 @@ debugLabel.y = 5
 
 splash.append(debugLabel)
 
+
+
+splash.append(dialogue.bgSprite)
+splash.append(dialogue.label)
+
+dialogue.loadSpeaker("assets/faces/stella.bmp", "stella")
+
+for name, speaker in dialogue.speakers.items():
+    splash.append(speaker)
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
+
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+            if dialogue.speaking:
+                dialogue.nextText()
+            else:
+                for interactable in maps[currentMap].interactables:
+                    interactable.use(goose.x)
     
     keys = pygame.key.get_pressed()
     
@@ -124,10 +147,7 @@ while True:
             goose.x += goose.SPEED
             goose.sprite.flip_x = True
 
-            goose.updateGooseWalk()
-    elif keys[pygame.K_UP]:
-        for interactable in maps[currentMap].interactables:
-            interactable.use(goose.x)
+            goose.updateGooseWalk()           
     else:
         goose.walking = False
 
@@ -148,4 +168,5 @@ while True:
     
     fade.fade()
     timer.update()
+    dialogue.update()
     time.sleep(0.1)
