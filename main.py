@@ -24,17 +24,30 @@ display.show(splash)
 
 fade = Fade()
 
+global currentMap
 currentMap = "outside_hotel"
 
 def enterHotel():
+    global currentMap
+    def afterFade():
+        global currentMap
+        
+        fade.direction = -1
+        currentMap = "inside_hotel"
+        goose.x = 0
+    
+    fade.direction = 1
+    timer.createAndStartTimer(6, afterFade)
+
+def exitHotel():
     global currentMap
 
     def afterFade():
         global currentMap
 
         fade.direction = -1
-        currentMap = "inside_hotel"
-        goose.x = 0
+        currentMap = "outside_hotel"
+        goose.x = 120
     
     fade.direction = 1
     timer.createAndStartTimer(6, afterFade)
@@ -49,15 +62,20 @@ maps = {
         ]),
         [
             Interactable(110, 40, enterHotel)
-        ]
+        ],
+        -100000, 
+        400
     ),
     
     "inside_hotel": Map(
         Parallax([
-            ParallaxFrame("assets/bg_sky.bmp", 0.1, True),
-            ParallaxFrame("assets/bg_hill.bmp", 2, True),
+            ParallaxFrame("assets/hotel_floor.bmp", 1, False)
         ]),
-        []
+        [
+            Interactable(-15, 30, exitHotel)
+        ],
+        -50, 
+        400
     )
 }
 
@@ -78,7 +96,7 @@ splash.append(fade.sprite)
 
 font = bitmap_font.load_font("assets/RobotoMono.bdf")
 
-debugLabel = label.Label(font, text="AwesomeSauce", color=0x0000FF)
+debugLabel = label.Label(font, text="AwesomeSauce", color=0xFFFFFF)
 debugLabel.x = 5
 debugLabel.y = 5
 
@@ -93,18 +111,20 @@ while True:
     keys = pygame.key.get_pressed()
     
     if keys[pygame.K_LEFT]:
-        goose.walking = True
-        goose.x -= goose.SPEED
-        goose.sprite.flip_x = False
-        
-        goose.updateGooseWalk()
+        if goose.x > maps[currentMap].leftBound:
+            goose.walking = True
+            goose.x -= goose.SPEED
+            goose.sprite.flip_x = False
+            
+            goose.updateGooseWalk()
     
     elif keys[pygame.K_RIGHT]:
-        goose.walking = True
-        goose.x += goose.SPEED
-        goose.sprite.flip_x = True
+        if goose.x < maps[currentMap].rightBound:
+            goose.walking = True
+            goose.x += goose.SPEED
+            goose.sprite.flip_x = True
 
-        goose.updateGooseWalk()
+            goose.updateGooseWalk()
     elif keys[pygame.K_UP]:
         for interactable in maps[currentMap].interactables:
             interactable.use(goose.x)
@@ -119,7 +139,7 @@ while True:
     debugLabel.text = str(goose.x)
     
     buttonIndicator.sprite.hidden = True
-
+    
     for interactable in maps[currentMap].interactables:
         if interactable.canUse(goose.x):
             buttonIndicator.sprite.hidden = False

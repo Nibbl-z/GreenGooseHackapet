@@ -14,15 +14,19 @@ class Interactable:
             self.function()
 
 class Map:
-    def __init__(self, parallax, interactables):
+    def __init__(self, parallax, interactables, leftBound, rightBound):
         self.parallax = parallax
         self.interactables = interactables
+        self.leftBound = leftBound
+        self.rightBound = rightBound
 
 def updateMaps(maps, currentMap):
     for name, map in maps.items():
         if currentMap != name:
             for frame in map.parallax.frames:
+                frame.spriteNext.hidden = True
                 frame.sprite.hidden = True
         else:
             for frame in map.parallax.frames:
+                frame.spriteNext.hidden = False
                 frame.sprite.hidden = False
