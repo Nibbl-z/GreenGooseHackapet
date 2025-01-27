@@ -2,7 +2,7 @@ import displayio
 import math
 
 class ParallaxFrame:
-    def __init__(self, file, speed):
+    def __init__(self, file, speed, doRepeat):
         self.speed = speed
         self.sheet = displayio.OnDiskBitmap(file)
         
@@ -16,30 +16,25 @@ class ParallaxFrame:
             pixel_shader=self.sheet.pixel_shader,
             x=self.sheet.width
         )
+        
+        self.doRepeat = doRepeat
     
     def getRepeatOffset(self, offset):
         return math.floor((offset * self.speed) / (self.sheet.width)) * self.sheet.width 
      
     def updatePosition(self, offset):
-        repeatOffset = self.getRepeatOffset(offset)
+        repeatOffset = self.getRepeatOffset(offset) if self.doRepeat else 0
         
         self.sprite.x = int(offset * self.speed - repeatOffset)
-        self.spriteNext.x = int(offset * self.speed - self.sheet.width - repeatOffset)
+
+        if self.doRepeat:
+            self.spriteNext.x = int(offset * self.speed - self.sheet.width - repeatOffset)
         
 
 class Parallax:
     def __init__(self, frames):
         self.frames = frames
-    
-    
 
     def updatePosition(self, offset):
-        debugIndex = 1
-        debugInfo = ""
-
         for frame in self.frames:
             frame.updatePosition(offset)
-            debugInfo = debugInfo + str(debugIndex) + ": " + str(frame.sprite.x) + " | "
-            debugIndex += 1
-
-        print(debugInfo)
