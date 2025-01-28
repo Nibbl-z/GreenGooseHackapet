@@ -8,6 +8,7 @@ from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text import label
 
 from instances.goose import Goose
+from instances.stella import Stella
 
 from map import Map, Interactable, updateMaps
 from instances.parallax import Parallax, ParallaxFrame
@@ -95,6 +96,9 @@ for name, i in maps.items():
 goose = Goose()
 splash.append(goose.sprite)
 
+stella = Stella()
+splash.append(stella.sprite)
+
 buttonIndicator = ButtonIndicator()
 splash.append(buttonIndicator.sprite)
 
@@ -107,8 +111,6 @@ debugLabel.x = 5
 debugLabel.y = 5
 
 splash.append(debugLabel)
-
-
 
 splash.append(dialogue.bgSprite)
 splash.append(dialogue.label)
@@ -169,4 +171,5 @@ while True:
     fade.fade()
     timer.update()
     dialogue.update()
+    stella.update(goose.x)
     time.sleep(0.1)
