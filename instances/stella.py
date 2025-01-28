@@ -51,10 +51,36 @@ class Stella:
                 "...well I\nwas gonna\nsearch for\nsome food...",
                 "Guess it might\nbe a bit\nsafer with\nyou around.",
                 "Come with me."
+            ],
+            "meetOutside": [
+                "I remember \nseeing some\nmushrooms\nthis way...",
+                "...I think.",
+            ],
+            "meetOutside2": [
+                "Not sure how\nthey're safe\nto eat...",
+                "Especially\nwith all the\nradiation...",
+                "But I've had\nthem before.",
+                "And they keep\nme alive.",
+                "And they grow\neverywhere...",
+                "I've seen some\ngrow inside\nthe hotel!...\nSomehow.",
+                "It's nice\nwhen that\nhappens.",
+                "Then I don't\nhave to come\nout here.",
+                "With all the...",
+                "...",
+            ],
+            "meetOutside3": [
+                "OH NO"
             ]
         }
 
-    def metStellaUpstairs(self, currentMap):
+    def metStellaUpstairs(self, gooseX, currentMap):
+        if abs(self.x - 40 - gooseX) >= 50:
+            self.direction = 0
+            self.walking = False
+        else:
+            self.direction = 5
+            self.walking = True
+
         if self.x >= 440:
             self.map = "inside_hotel"
             self.x = 400
@@ -66,15 +92,31 @@ class Stella:
                 self.direction = 0
             
             self.sprite.flip_x = True
+    
+    def metStellaDownstairs(self, gooseX, currentMap):
+        if abs(self.x - 50 - gooseX) >= 50:
+            self.direction = 0
+            self.walking = False
+        else:
+            self.direction = -5
+            self.walking = True
 
-    def metStellaDownstairs(self, currentMap):
         if self.x <= 50:
             self.map = "outside_hotel"
-
             self.direction = 0
-            self.x = 100
+            self.x = 230
+            self.sprite.flip_x = True
             self.walking = False
-            self.sleeping = True
+            self.sleeping = False
+            self.customUpdate = None
+
+    def metStellaOutside(self, gooseX, currentMap):
+        if self.x - 90 >= gooseX:
+            self.direction = 0
+            self.walking = False
+        else:
+            self.direction = 5
+            self.walking = True
     
     def update(self, gooseX, currentMap):
         if self.sleeping:

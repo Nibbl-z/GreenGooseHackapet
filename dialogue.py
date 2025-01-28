@@ -2,6 +2,8 @@ import displayio
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text import label
 
+import timer
+
 class Dialogue:
     def __init__(self):
         self.bgSheet = displayio.OnDiskBitmap("assets/dialogue.bmp")
@@ -24,6 +26,9 @@ class Dialogue:
         self.currentText = 0
         self.textCutoff = 0
         self.speaking = False
+
+        self.finishedSpeaking = False
+        self.autoContinue = False
         
         self.afterDialogue = None
     
@@ -32,7 +37,7 @@ class Dialogue:
         self.speakers[name] = displayio.TileGrid(sheet, pixel_shader=sheet.pixel_shader, x=87, y=9)
         self.speakers[name].hidden = True
     
-    def speak(self, speaker, dialogue, afterDialogue):
+    def speak(self, speaker, dialogue, afterDialogue, autoContinue):
         self.bgSprite.hidden = False
         self.speakers[speaker].hidden = False
         self.speaking = True
@@ -40,12 +45,13 @@ class Dialogue:
         self.currentText = 0
         self.textCutoff = 0
         self.afterDialogue = afterDialogue
+        self.autoContinue = autoContinue
 
     def hide(self):
         self.label.text = ""
         self.bgSprite.hidden = True
         self.speaking = False
-
+        
         for _, speaker in self.speakers.items():
             speaker.hidden = True
         
@@ -54,20 +60,30 @@ class Dialogue:
         if self.speaking:
             if self.textCutoff < len(self.texts[self.currentText]):
                 self.textCutoff += 1
+            else:
+                if self.autoContinue and not self.finishedSpeaking:
+                    self.finishedSpeaking = True
+                    timer.createAndStartTimer(15, self.nextText)
+            
             
             self.label.text = self.texts[self.currentText][:self.textCutoff]
     
     def nextText(self):
+        if self.currentText >= len(self.texts): return
+
         if self.textCutoff < len(self.texts[self.currentText]):
             self.textCutoff = len(self.texts[self.currentText])
             return
 
         self.textCutoff = 0
         self.currentText += 1
+        self.finishedSpeaking = False
         
         if self.currentText >= len(self.texts):
-            self.afterDialogue()
             self.hide()
+            
+            if self.afterDialogue != None: self.afterDialogue()
+            
 
     
 

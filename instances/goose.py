@@ -18,8 +18,9 @@ class Goose:
         self.walkFrame = 0
         
         self.frozen = False
+        self.cameraFollow = True
 
-        self.SPEED = 10
+        self.SPEED = 5
     
     def updateGooseWalk(self):
         self.walkFrame += 1
@@ -32,3 +33,11 @@ class Goose:
             return self.walkFrame + 1
         
         return 0
+    
+    def update(self):
+        if self.cameraFollow:
+            self.sprite.x = 48
+        else:
+            self.sprite.x = self.x
+
+    

@@ -9,6 +9,8 @@ from adafruit_display_text import label
 
 from instances.goose import Goose
 from instances.stella import Stella
+from instances.greygoose import GreyGoose
+from instances.greygoosebossfight import GreyGooseBossfight
 
 from map import Map, Interactable, updateMaps, Trigger
 from instances.parallax import Parallax, ParallaxFrame
@@ -16,6 +18,7 @@ from instances.button_indicator import ButtonIndicator
 from instances.fade import Fade
 
 import timer
+import random
 from dialogue import Dialogue
 
 pygame.init()
@@ -28,12 +31,11 @@ fade = Fade()
 dialogue = Dialogue()
 
 global currentMap
-currentMap = "outside_hotel"
 
+currentMap = "outside_hotel"
 currentState = "start"
 
 def enterHotel():
-    global currentMap
     def afterFade():
         global currentMap
         
@@ -44,15 +46,93 @@ def enterHotel():
     fade.direction = 1
     timer.createAndStartTimer(6, afterFade)
 
-def exitHotel():
+def startFight():
     global currentMap
+
+    fade.direction = -1
+    greygooseBossfight.sprite.hidden = False
+    goose.cameraFollow = False
+    goose.x = 48
+    goose.SPEED = 10
+    goose.sprite.hidden = False
+    goose.frozen = False
+    goose.sprite.y = 64+24
     
+    currentMap = "void"
+
+    def attackLeft():
+        greygooseBossfight.attackLeft(goose.x, splash)
+        timer.createAndStartTimer(random.randint(10,20), attackLeft)
+
+    def attackRight():
+        greygooseBossfight.attackRight(goose.x, splash)
+        timer.createAndStartTimer(random.randint(10,20), attackRight)
+
+    timer.createAndStartTimer(random.randint(10,20), attackLeft)
+    timer.createAndStartTimer(random.randint(10,20), attackRight)
+
+def encounter():
+    def frame1():
+        global currentMap
+        fade.direction = -1
+        currentMap = "encounter_1"
+        goose.x = 0
+        goose.sprite.hidden = True
+
+        def afterWait():
+            def frame2():
+                global currentMap
+                fade.direction = -1
+                currentMap = "encounter_2"
+                
+                def afterWait2():
+                    fade.direction = 1
+                    timer.createAndStartTimer(6, startFight)
+
+                timer.createAndStartTimer(15, afterWait2)
+                
+            
+
+            fade.direction = 1
+            timer.createAndStartTimer(6, frame2)
+        
+        timer.createAndStartTimer(15, afterWait)
+
+    fade.direction = 1
+    timer.createAndStartTimer(6, frame1)
+
+def exitHotel():
     def afterFade():
         global currentMap
-        
+        global currentState
+
         fade.direction = -1
         currentMap = "outside_hotel"
         goose.x = 120
+        
+        if currentState == "metStella":
+            def afterSpeak():
+                def stellaScare():
+                    
+                    goose.frozen = True
+                    goose.sprite.flip_x = True
+                    greygoose.x = stella.x + 100
+                    greygoose.direction = -5
+
+                    greygoose.map = "outside_hotel"
+                    stella.customUpdate = None
+                    stella.direction = -15
+                    stella.sprite.flip_x = True
+                    dialogue.speak("stella", stella.dialogues["meetOutside3"], None, True)
+
+                dialogue.speak("stella", stella.dialogues["meetOutside2"], stellaScare, True)
+                
+                stella.direction = 5
+                stella.walking = True
+                stella.sprite.flip_x = False
+                stella.customUpdate = stella.metStellaOutside
+            
+            dialogue.speak("stella", stella.dialogues["meetOutside"], afterSpeak, True)
     
     fade.direction = 1
     timer.createAndStartTimer(6, afterFade)
@@ -62,10 +142,11 @@ def upstairsHotel():
     
     def afterFade():
         global currentMap
-        
+        global currentState
+
         fade.direction = -1
         currentMap = "inside_hotel_floor2"
-        goose.x = 400
+        goose.x = 60 # 400
         goose.sprite.flip_x = False
     
     fade.direction = 1
@@ -82,7 +163,7 @@ def downstairsHotel():
         currentMap = "inside_hotel"
         goose.x = 390
         goose.sprite.flip_x = False
-
+        
         if currentState == "metStella" and stella.map == "inside_hotel":
             stella.direction = -5
             stella.customUpdate = stella.metStellaDownstairs
@@ -107,22 +188,30 @@ def meetStella():
                 
                 stella.customUpdate = stella.metStellaUpstairs
 
-            dialogue.speak("stella", stella.dialogues["testing"], afterSpeak)
+            dialogue.speak("stella", stella.dialogues["testing"], afterSpeak, False)
         
         timer.createAndStartTimer(10, stellaSpeak)
 
     timer.createAndStartTimer(10, afterWait)
 
 maps = {
+    "void" : Map(
+        Parallax([]),
+        [],
+        [],
+        0, 90
+    ),
     "outside_hotel" : Map(
         Parallax([
             ParallaxFrame("assets/bg_sky.bmp", 0.1, True),
-            ParallaxFrame("assets/bg_hill.bmp", 0.3, True),
+            ParallaxFrame("assets/bg_hill.bmp", 0.2, True),
+            ParallaxFrame("assets/trees2.bmp", 0.5, True),
+            ParallaxFrame("assets/trees1.bmp", 0.6, True),
             ParallaxFrame("assets/building.bmp", 0.9, False),
             ParallaxFrame("assets/ground.bmp", 1, True),
         ]),
         [
-            Interactable(110, 40, upstairsHotel)
+            Interactable(110, 40, encounter)
         ],
         [],
         -100000, 
@@ -154,15 +243,30 @@ maps = {
         ],
         -50,
         430
-    )
+    ),
+
+    "encounter_1": Map(
+        Parallax([
+            ParallaxFrame("assets/encounter1.bmp", 1, False)
+        ]),
+        [], [], -100, 100
+    ),
+
+    "encounter_2": Map(
+        Parallax([
+            ParallaxFrame("assets/encounter2.bmp", 1, False)
+        ]),
+        [], [], -100, 100
+    ),
 }
-
-
 
 for name, i in maps.items():
     for frame in i.parallax.frames:
         splash.append(frame.sprite)
         splash.append(frame.spriteNext)
+
+greygooseBossfight = GreyGooseBossfight()
+splash.append(greygooseBossfight.sprite)
 
 goose = Goose()
 splash.append(goose.sprite)
@@ -172,6 +276,12 @@ splash.append(stella.sprite)
 stella.sleeping = True
 stella.map = "inside_hotel_floor2"
 stella.x = 15
+
+greygoose = GreyGoose()
+splash.append(greygoose.sprite)
+greygoose.map = "inside_hotel"
+greygoose.x = 60
+greygoose.walking = True
 
 buttonIndicator = ButtonIndicator()
 splash.append(buttonIndicator.sprite)
@@ -202,7 +312,7 @@ while True:
 
         if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
             if dialogue.speaking:
-                dialogue.nextText()
+                if not dialogue.autoContinue: dialogue.nextText() 
             else:
                 for interactable in maps[currentMap].interactables:
                     interactable.use(goose.x)
@@ -231,7 +341,6 @@ while True:
     goose.sprite[0] = goose.frame()
     buttonIndicator.update()
     maps[currentMap].parallax.updatePosition(-goose.x)
-    print(currentMap)
     debugLabel.text = str(goose.x) + "/" + str(stella.x)
     
     buttonIndicator.sprite.hidden = True
@@ -249,7 +358,10 @@ while True:
     timer.update()
     dialogue.update()
     stella.update(goose.x, currentMap)
+    greygoose.update(goose.x, currentMap)
+    greygooseBossfight.update()
+    goose.update()
 
-    if stella.customUpdate != None: stella.customUpdate(currentMap)
-
+    if stella.customUpdate != None: stella.customUpdate(goose.x, currentMap)
+    
     time.sleep(0.1)
