@@ -16,33 +16,37 @@ class Dialogue:
         self.font = bitmap_font.load_font("assets/RobotoMono.bdf")
 
         self.label = label.Label(self.font, text="", color=0xFFFFFF)
-        self.label.x = 9
-        self.label.y = 9
+        self.label.line_spacing = 0.6
+        self.label.x = 10
+        self.label.y = 10
         
         self.texts = []
         self.currentText = 0
         self.textCutoff = 0
         self.speaking = False
+        
+        self.afterDialogue = None
     
     def loadSpeaker(self, file, name):
         sheet = displayio.OnDiskBitmap(file)
         self.speakers[name] = displayio.TileGrid(sheet, pixel_shader=sheet.pixel_shader, x=87, y=9)
         self.speakers[name].hidden = True
     
-    def speak(self, speaker, dialogue):
+    def speak(self, speaker, dialogue, afterDialogue):
         self.bgSprite.hidden = False
         self.speakers[speaker].hidden = False
         self.speaking = True
         self.texts = dialogue
         self.currentText = 0
         self.textCutoff = 0
+        self.afterDialogue = afterDialogue
 
     def hide(self):
         self.label.text = ""
         self.bgSprite.hidden = True
         self.speaking = False
 
-        for name, speaker in self.speakers.items():
+        for _, speaker in self.speakers.items():
             speaker.hidden = True
         
         
@@ -62,6 +66,7 @@ class Dialogue:
         self.currentText += 1
         
         if self.currentText >= len(self.texts):
+            self.afterDialogue()
             self.hide()
 
     

@@ -17,7 +17,9 @@ class Goose:
         self.walking = False
         self.walkFrame = 0
         
-        self.SPEED = 5
+        self.frozen = False
+
+        self.SPEED = 10
     
     def updateGooseWalk(self):
         self.walkFrame += 1
