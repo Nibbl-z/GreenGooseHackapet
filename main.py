@@ -11,6 +11,7 @@ from instances.goose import Goose
 from instances.stella import Stella
 from instances.greygoose import GreyGoose
 from instances.greygoosebossfight import GreyGooseBossfight
+from instances.mushroom_scavenging import MushroomScavenging
 
 from map import Map, Interactable, updateMaps, Trigger
 from instances.parallax import Parallax, ParallaxFrame
@@ -139,7 +140,7 @@ def failBossfight():
                     timer.createAndStartTimer(10, afterWait4)
                 
                 timer.createAndStartTimer(20, afterWait3)
-
+            
             timer.createAndStartTimer(25, afterWait2)
     
         timer.createAndStartTimer(25, afterWait)
@@ -225,6 +226,24 @@ def encounter():
     fade.direction = 1
     timer.createAndStartTimer(6, frame1)
 
+def startGathering():
+    fade.direction = 1
+
+    def afterFade():
+        global currentMap
+        global currentState
+        currentState = "mushroom_gathering"
+        currentMap = "void"
+        goose.frozen = True
+        goose.hidden = True
+
+        mushroomScavenging.bladeSprite.hidden = False
+        mushroomScavenging.sprite.hidden = False
+        mushroomScavenging.spawnMushroom(splash)
+        fade.direction = -1
+    
+    timer.createAndStartTimer(6, afterFade)
+
 def exitHotel():
     def afterFade():
         global currentMap
@@ -291,7 +310,6 @@ def downstairsHotel():
         if currentState == "metStella" and stella.map == "inside_hotel":
             stella.direction = -5
             stella.customUpdate = stella.metStellaDownstairs
-
     
     fade.direction = 1
     timer.createAndStartTimer(6, afterFade)
@@ -335,7 +353,7 @@ maps = {
             ParallaxFrame("assets/ground.bmp", 1, True),
         ]),
         [
-            Interactable(110, 40, encounter)
+            Interactable(110, 40, startGathering)
         ],
         [],
         -100000, 
@@ -394,6 +412,10 @@ splash.append(greygooseBossfight.sprite)
 splash.append(greygooseBossfight.healthBar)
 splash.append(greygooseBossfight.angerSprite)
 
+mushroomScavenging = MushroomScavenging()
+splash.append(mushroomScavenging.sprite)
+splash.append(mushroomScavenging.bladeSprite)
+
 goose = Goose()
 splash.append(goose.sprite)
 splash.append(goose.healthBar)
@@ -437,11 +459,14 @@ while True:
             exit()
 
         if event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
-            if dialogue.speaking:
-                if not dialogue.autoContinue: dialogue.nextText() 
+            if currentState == "mushroom_gathering":
+                mushroomScavenging.slash()
             else:
-                for interactable in maps[currentMap].interactables:
-                    interactable.use(goose.x)
+                if dialogue.speaking:
+                    if not dialogue.autoContinue: dialogue.nextText() 
+                else:
+                    for interactable in maps[currentMap].interactables:
+                        interactable.use(goose.x)
     
     keys = pygame.key.get_pressed()
     
@@ -473,14 +498,14 @@ while True:
     goose.sprite[0] = goose.frame()
     buttonIndicator.update()
     maps[currentMap].parallax.updatePosition(-goose.x)
-    debugLabel.text = str(goose.x) + "/" + str(stella.x)
+    debugLabel.text = str(mushroomScavenging.bladeY) + "/" + str(mushroomScavenging.mushroom.sprite.y if mushroomScavenging.mushroom != None else 0)
     
     buttonIndicator.sprite.hidden = True
     
     for interactable in maps[currentMap].interactables:
         if interactable.canUse(goose.x):
             buttonIndicator.sprite.hidden = False
-
+    
     for trigger in maps[currentMap].triggers:
         trigger.update(goose.x)
 
@@ -499,7 +524,7 @@ while True:
     greygoose.update(goose.x, currentMap)
     greygooseBossfight.update(goose)
     goose.update()
-
+    mushroomScavenging.update()
     if stella.customUpdate != None: stella.customUpdate(goose.x, currentMap)
     
     time.sleep(0.1)

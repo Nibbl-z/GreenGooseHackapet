@@ -81,7 +81,12 @@ class Stella:
                 "Would you\nbe willing to\nget them for\nme?",
                 "If you\nencounter any\nmore of those...",
                 "...Geese...",
-                "I'm sure you\ncould handle\nit."
+                "I'm sure you\ncould handle\nit.",
+                "Take this blade.",
+                "I found it\nright after\nthe incident..",
+                "..when I was\nscavenging the\nhotel for\nthe first time.",
+                "I remember a\nvery big tree\nto the right...",
+                "There should\nbe plenty of\nmushrooms on\nit."
             ]
         }
 
