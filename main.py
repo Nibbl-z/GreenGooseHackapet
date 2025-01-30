@@ -46,30 +46,154 @@ def enterHotel():
     fade.direction = 1
     timer.createAndStartTimer(6, afterFade)
 
+def winBossfight():
+    global currentState
+    currentState = "won_bossfight"
+    fade.direction = 1
+
+    def afterFade():
+        global currentMap
+        greygooseBossfight.angerSprite.hidden = True
+        fade.direction = -1
+        currentMap = "outside_hotel"
+        goose.x = 700
+        goose.cameraFollow = True
+        goose.showHealth = False
+        goose.sprite.flip_x = True
+        goose.SPEED = 5
+        
+        greygooseBossfight.sprite.hidden = True
+        greygooseBossfight.healthBar.hidden = True
+        
+        goose.sprite.y = 64
+        
+        greygoose.x = 790
+        greygoose.walking = False
+        greygoose.map = "outside_hotel"
+        greygoose.sprite.flip_x = False
+        greygoose.direction = 0
+        
+        greygoose.passingOut = 1
+        
+        def afterWait():
+            stella.map = "outside_hotel"
+            stella.x = 500
+            stella.direction = 5
+            stella.walking = True
+            stella.sleeping = False
+
+            greygoose.passingOut = 2
+
+        timer.createAndStartTimer(25, afterWait)
+    
+    timer.createAndStartTimer(6, afterFade)
+
+def failBossfight():
+    global currentState
+    currentState = "failed_bossfight"
+    fade.direction = 1
+
+    def afterFade():
+        global currentMap
+        
+        fade.direction = -1
+        currentMap = "outside_hotel"
+        goose.x = 700
+        goose.cameraFollow = True
+        goose.frozen = True
+        goose.showHealth = False
+        goose.sprite.flip_x = True
+        greygooseBossfight.sprite.hidden = True
+        greygooseBossfight.healthBar.hidden = True
+        
+        goose.sprite.y = 64
+        
+        greygoose.x = 790
+        greygoose.walking = False
+        greygoose.map = "outside_hotel"
+        greygoose.sprite.flip_x = False
+        greygoose.direction = 0
+        
+        goose.passingOut = 1
+        
+        def afterWait():
+            goose.passingOut = 2
+
+            def afterWait2():
+                greygoose.walking = True
+                greygoose.sprite.flip_x = True
+                greygoose.direction = 3
+
+                def afterWait3():
+                    fade.direction = 1
+                    
+                    def afterWait4():
+                        greygooseBossfight.health = greygooseBossfight.MAX_HEALTH
+                        greygooseBossfight.parryFeatherCount = 0
+                        greygooseBossfight.parryFeatherRequiredCount = 6
+
+                        goose.health = goose.MAX_HEALTH
+                        goose.passingOut = 0
+                        encounter()
+
+                    timer.createAndStartTimer(10, afterWait4)
+                
+                timer.createAndStartTimer(20, afterWait3)
+
+            timer.createAndStartTimer(25, afterWait2)
+    
+        timer.createAndStartTimer(25, afterWait)
+    
+    timer.createAndStartTimer(6, afterFade)
+
 def startFight():
     global currentMap
-
+    global currentState
     fade.direction = -1
     greygooseBossfight.sprite.hidden = False
+    greygooseBossfight.healthBar.hidden = False
     goose.cameraFollow = False
-    goose.x = 48
+    goose.x = 40
+    goose.showHealth = True
     goose.SPEED = 10
-    goose.sprite.hidden = False
+    goose.hidden = False
     goose.frozen = False
     goose.sprite.y = 64+24
     
     currentMap = "void"
+    currentState = "bossfight"
+    
+    def startAttacks():
+        def attackLeft():
+            if goose.health <= 0 or greygooseBossfight.health <= 0:
+                return
+            
+            greygooseBossfight.attackLeft(goose.x, splash)
+            
+            minTime = 7 if greygooseBossfight.health <= int(greygooseBossfight.MAX_HEALTH / 2) else 10
+            maxTime = 15 if greygooseBossfight.health <= int(greygooseBossfight.MAX_HEALTH / 2) else 30
 
-    def attackLeft():
-        greygooseBossfight.attackLeft(goose.x, splash)
-        timer.createAndStartTimer(random.randint(10,20), attackLeft)
+            timer.createAndStartTimer(random.randint(minTime, maxTime), attackLeft)
 
-    def attackRight():
-        greygooseBossfight.attackRight(goose.x, splash)
-        timer.createAndStartTimer(random.randint(10,20), attackRight)
+        def attackRight():
+            if goose.health <= 0 or greygooseBossfight.health <= 0:
+                return
+            
+            greygooseBossfight.attackRight(goose.x, splash)
 
-    timer.createAndStartTimer(random.randint(10,20), attackLeft)
-    timer.createAndStartTimer(random.randint(10,20), attackRight)
+            minTime = 7 if greygooseBossfight.health <= int(greygooseBossfight.MAX_HEALTH / 2) else 10
+            maxTime = 16 if greygooseBossfight.health <= int(greygooseBossfight.MAX_HEALTH / 2) else 30
+
+            timer.createAndStartTimer(random.randint(minTime,maxTime), attackRight)
+
+        timer.createAndStartTimer(random.randint(20,30), attackLeft)
+        timer.createAndStartTimer(random.randint(20,30), attackRight)
+    
+    dialogue.speak(None, [
+        "Avoid red feathers\nParry blue feathers\nby holding the\nmiddle button."
+    ], startAttacks, True)
+
+    
 
 def encounter():
     def frame1():
@@ -77,7 +201,7 @@ def encounter():
         fade.direction = -1
         currentMap = "encounter_1"
         goose.x = 0
-        goose.sprite.hidden = True
+        goose.hidden = True
 
         def afterWait():
             def frame2():
@@ -187,7 +311,7 @@ def meetStella():
                 currentState = "metStella"
                 
                 stella.customUpdate = stella.metStellaUpstairs
-
+            
             dialogue.speak("stella", stella.dialogues["testing"], afterSpeak, False)
         
         timer.createAndStartTimer(10, stellaSpeak)
@@ -267,10 +391,12 @@ for name, i in maps.items():
 
 greygooseBossfight = GreyGooseBossfight()
 splash.append(greygooseBossfight.sprite)
+splash.append(greygooseBossfight.healthBar)
+splash.append(greygooseBossfight.angerSprite)
 
 goose = Goose()
 splash.append(goose.sprite)
-
+splash.append(goose.healthBar)
 stella = Stella()
 splash.append(stella.sprite)
 stella.sleeping = True
@@ -319,8 +445,12 @@ while True:
     
     keys = pygame.key.get_pressed()
     
-    if keys[pygame.K_LEFT]:
-        if goose.x > maps[currentMap].leftBound and not goose.frozen:
+    if keys[pygame.K_UP]:
+        if currentState == "bossfight":
+            goose.parrying = True
+    elif keys[pygame.K_LEFT]:
+        goose.parrying = False
+        if goose.x > maps[currentMap].leftBound and not goose.frozen and not goose.parrying:
             goose.walking = True
             goose.x -= goose.SPEED
             goose.sprite.flip_x = False
@@ -328,13 +458,15 @@ while True:
             goose.updateGooseWalk()
     
     elif keys[pygame.K_RIGHT]:
-        if goose.x < maps[currentMap].rightBound and not goose.frozen:
+        goose.parrying = False
+        if goose.x < maps[currentMap].rightBound and not goose.frozen and not goose.parrying:
             goose.walking = True
             goose.x += goose.SPEED
             goose.sprite.flip_x = True
 
-            goose.updateGooseWalk()           
+            goose.updateGooseWalk()       
     else:
+        goose.parrying = False
         goose.walking = False
 
     
@@ -351,6 +483,12 @@ while True:
 
     for trigger in maps[currentMap].triggers:
         trigger.update(goose.x)
+
+    if currentState == "bossfight":
+        if goose.health <= 0:
+            failBossfight()
+        elif greygooseBossfight.health <= 0:
+            winBossfight()
     
     updateMaps(maps, currentMap)
     
@@ -359,7 +497,7 @@ while True:
     dialogue.update()
     stella.update(goose.x, currentMap)
     greygoose.update(goose.x, currentMap)
-    greygooseBossfight.update()
+    greygooseBossfight.update(goose)
     goose.update()
 
     if stella.customUpdate != None: stella.customUpdate(goose.x, currentMap)

@@ -70,6 +70,18 @@ class Stella:
             ],
             "meetOutside3": [
                 "OH NO"
+            ],
+            "afterFight": [
+                "Oh... you...",
+                "Fought it...",
+                "Uhmm...",
+                "Wow.",
+                "Uhh..",
+                "I'm too\nparanoid to\ngather the\nmushrooms now...",
+                "Would you\nbe willing to\nget them for\nme?",
+                "If you\nencounter any\nmore of those...",
+                "...Geese...",
+                "I'm sure you\ncould handle\nit."
             ]
         }
 

@@ -39,7 +39,10 @@ class Dialogue:
     
     def speak(self, speaker, dialogue, afterDialogue, autoContinue):
         self.bgSprite.hidden = False
-        self.speakers[speaker].hidden = False
+
+        if speaker != None:
+            self.speakers[speaker].hidden = False
+        
         self.speaking = True
         self.texts = dialogue
         self.currentText = 0
@@ -81,7 +84,7 @@ class Dialogue:
         
         if self.currentText >= len(self.texts):
             self.hide()
-            
+
             if self.afterDialogue != None: self.afterDialogue()
             
 

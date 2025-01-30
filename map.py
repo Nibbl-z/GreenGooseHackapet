@@ -18,7 +18,7 @@ class Trigger:
         self.x = x
         self.oneshot = oneshot # This is a reference to the 2016 hit indie game OneShot
         self.function = function
-
+        
         self.triggered = False
     
     def update(self, x):

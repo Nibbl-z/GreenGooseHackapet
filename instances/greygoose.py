@@ -14,6 +14,7 @@ class GreyGoose:
         
         self.x = 0
         
+        self.passingOut = 0
         self.walking = False
         self.walkFrame = 0
         self.map = "inside_hotel"
@@ -25,17 +26,17 @@ class GreyGoose:
             
             if self.walkFrame == 6:
                 self.walkFrame = 0
-            
-            self.sprite[0] = 1 + self.walkFrame
-        else:
-            self.sprite[0] = 1
+
+        self.sprite[0] = self.frame()
 
         self.sprite.hidden = self.map != currentMap
         self.x += self.direction
         self.sprite.x = self.x - gooseX
 
     def frame(self):
-        if self.walking:
+        if self.passingOut != 0:
+            return 6 + self.passingOut
+        elif self.walking:
             return self.walkFrame + 1
         
         return 0

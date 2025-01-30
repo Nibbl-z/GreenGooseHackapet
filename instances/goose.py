@@ -1,8 +1,9 @@
 import displayio
-
+from adafruit_display_shapes.rect import Rect
 class Goose:
     def __init__(self):
         self.sheet = displayio.OnDiskBitmap("assets/goose.bmp")
+
         self.sprite = displayio.TileGrid(
             self.sheet,
             pixel_shader=self.sheet.pixel_shader,
@@ -14,13 +15,22 @@ class Goose:
         
         self.x = 0
         
+        self.passingOut = 0
         self.walking = False
         self.walkFrame = 0
         
         self.frozen = False
         self.cameraFollow = True
-
+        
         self.SPEED = 5
+        self.MAX_HEALTH = 5
+        self.health = self.MAX_HEALTH
+        self.damaged = False
+        self.hidden = False
+        self.showHealth = False
+        
+        self.healthBar = Rect(0, 128-5, 128, 5, fill=0xFF0000)
+        self.parrying = False
     
     def updateGooseWalk(self):
         self.walkFrame += 1
@@ -29,15 +39,27 @@ class Goose:
             self.walkFrame = 0
 
     def frame(self):
-        if self.walking:
+        if self.passingOut != 0:
+            return 8 + self.passingOut
+        elif self.damaged:
+            self.damaged = False
+            return 7
+        elif self.parrying:
+            return 8
+        if self.walking:   
             return self.walkFrame + 1
+    
         
         return 0
     
     def update(self):
+        self.sprite.hidden = self.hidden
+
         if self.cameraFollow:
             self.sprite.x = 48
         else:
             self.sprite.x = self.x
-
+        
+        self.healthBar.hidden = not self.showHealth
+        self.healthBar.x = int(128 * (self.health / self.MAX_HEALTH)) - 128
     
