@@ -231,17 +231,54 @@ def startGathering():
 
     def afterFade():
         global currentMap
-        global currentState
-        currentState = "mushroom_gathering"
+        
         currentMap = "void"
         goose.frozen = True
         goose.hidden = True
 
-        mushroomScavenging.bladeSprite.hidden = False
         mushroomScavenging.sprite.hidden = False
-        mushroomScavenging.spawnMushroom(splash)
         fade.direction = -1
     
+        def afterDialogue():
+            global currentState
+            currentState = "mushroom_gathering"
+            mushroomScavenging.bladeSprite.hidden = False
+            mushroomScavenging.spawnMushroom(splash)
+            mushroomScavenging.label.hidden = False
+            mushroomScavenging.timerLabel.hidden = False
+            mushroomScavenging.started = True
+        
+        dialogue.speak(None, ["g"], afterDialogue, True)
+
+        later = [
+        "Harvest mushrooms\nby pressing the\nmiddle button",
+        "Discard poisonous\nspotted mushrooms\nwith the right\nbutton",
+        "Score at least 15 points to continue"
+        ]
+    
+    timer.createAndStartTimer(6, afterFade)
+
+def finishedGathering():
+    fade.direction = 1
+
+    def afterFade():
+        global currentMap
+        
+        mushroomScavenging.bladeSprite.hidden = True
+        mushroomScavenging.sprite.hidden = True
+        mushroomScavenging.mushroom.sprite.hidden = True
+        mushroomScavenging.mushroom.spritePoision.hidden = True
+        mushroomScavenging.label.hidden = True
+        mushroomScavenging.timerLabel.hidden = True
+
+        currentMap = "outside_hotel_sunset"
+        fade.direction = -1
+
+        print(currentMap)
+        
+        goose.hidden = False
+        goose.frozen = False
+
     timer.createAndStartTimer(6, afterFade)
 
 def exitHotel():
@@ -359,6 +396,22 @@ maps = {
         -100000, 
         100000
     ),
+    "outside_hotel_sunset" : Map(
+        Parallax([
+            ParallaxFrame("assets/bg_sky_sunset.bmp", 0.1, True),
+            ParallaxFrame("assets/bg_hill.bmp", 0.2, True),
+            ParallaxFrame("assets/trees2.bmp", 0.5, True),
+            ParallaxFrame("assets/trees1.bmp", 0.6, True),
+            ParallaxFrame("assets/building.bmp", 0.9, False),
+            ParallaxFrame("assets/ground.bmp", 1, True),
+        ]),
+        [
+            Interactable(110, 40, startGathering)
+        ],
+        [],
+        -100000, 
+        100000
+    ),
     
     "inside_hotel": Map(
         Parallax([
@@ -415,6 +468,8 @@ splash.append(greygooseBossfight.angerSprite)
 mushroomScavenging = MushroomScavenging()
 splash.append(mushroomScavenging.sprite)
 splash.append(mushroomScavenging.bladeSprite)
+splash.append(mushroomScavenging.label)
+splash.append(mushroomScavenging.timerLabel)
 
 goose = Goose()
 splash.append(goose.sprite)
@@ -442,7 +497,7 @@ debugLabel = label.Label(font, text="AwesomeSauce", color=0xFFFFFF)
 debugLabel.x = 5
 debugLabel.y = 5
 
-splash.append(debugLabel)
+#splash.append(debugLabel)
 
 splash.append(dialogue.bgSprite)
 splash.append(dialogue.label)
@@ -467,6 +522,10 @@ while True:
                 else:
                     for interactable in maps[currentMap].interactables:
                         interactable.use(goose.x)
+
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
+            if currentState == "mushroom_gathering":
+                mushroomScavenging.mushroom.skipped = True
     
     keys = pygame.key.get_pressed()
     
@@ -524,7 +583,13 @@ while True:
     greygoose.update(goose.x, currentMap)
     greygooseBossfight.update(goose)
     goose.update()
-    mushroomScavenging.update()
+    mushroomScavenging.update(dialogue)
+    print(currentState)
+    if currentState == "mushroom_gathering":
+        if mushroomScavenging.win:
+            currentState = "ending"
+            finishedGathering()
+
     if stella.customUpdate != None: stella.customUpdate(goose.x, currentMap)
     
     time.sleep(0.1)
