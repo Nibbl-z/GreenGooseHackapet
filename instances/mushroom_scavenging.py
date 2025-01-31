@@ -45,7 +45,7 @@ class MushroomScavenging:
         self.ySin = 0
         self.xSin = 0
         
-        self.score = 100
+        self.score = 0
         self.slashing = False
         self.sprite.hidden = True
         self.bladeSprite.hidden = True
@@ -69,7 +69,7 @@ class MushroomScavenging:
         self.started = False
         self.win = False
 
-        self.timer = 20
+        self.timer = 600
     
     def slash(self):
         if self.slashing: return

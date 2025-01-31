@@ -79,14 +79,53 @@ class Stella:
                 "Uhh..",
                 "I'm too\nparanoid to\ngather the\nmushrooms now...",
                 "Would you\nbe willing to\nget them for\nme?",
-                "If you\nencounter any\nmore of those...",
+                "If you\nencounter any\nmore of\nthose...",
                 "...Geese...",
                 "I'm sure you\ncould handle\nit.",
-                "Take this blade.",
+                "Take this\nblade.",
                 "I found it\nright after\nthe incident..",
-                "..when I was\nscavenging the\nhotel for\nthe first time.",
-                "I remember a\nvery big tree\nto the right...",
+                "..when I was\nlooting the\nhotel for the\nfirst time.",
+                "Uhh...",
+                "I remember a\nvery big tree\nto the right.",
                 "There should\nbe plenty of\nmushrooms on\nit."
+            ],
+            "ending": [
+                "...Thanks..\nThis should\nfeed us for\na while.",
+                "*sigh*"
+            ],
+            "ending2" : [
+                "I wish\neverything\nwas back to\nnormal...",
+                "I know it's\nbeen...\nmany years...",
+                "But...",
+                "I really miss\nmy family.",
+                "I wish they\ncould've\nbrought me\nwith them...",
+                "To whatever\nfar away\nplace they\nleft to.",
+                "...",
+                "That extra\nreactor...",
+                "Was simply\na creation\nfueled with\ngreed.",
+                "The people\nwere making\nenough energy.",
+                "And yet they\nwanted more.",
+                "They rushed\nto build\nanother...",
+                "Which\nobviously\nresulted in\na...",
+                "...very flawed\ndesign.",
+                "And look\nwhat happened.",
+                "Look at what\nthe people\ndid.",
+                "Was it worth\nit?",
+                "An entire\ncity. Gone in\nan instant.",
+                "...",
+                "*sigh*",
+                "Well...\nthere's...",
+                "There's\nnothing we\ncan do...",
+                "...except\nhope.",
+                "Maybe nature\nwill heal.",
+                "Maybe the\nradiation will\nall just go\naway.",
+                "Maybe the\npeople will\ncome back.",
+                "...",
+                "Maybe my\nfamily will\ncome back...",
+                "...",
+                "Sorry if I...\nrambled too\nmuch...",
+                "It's getting\ndark.",
+                "We should\nprobably go\nback to the\nhotel now."
             ]
         }
 
@@ -135,6 +174,11 @@ class Stella:
             self.direction = 5
             self.walking = True
     
+    def foughtGreygoose(self, gooseX, currentMap):
+        if self.x > gooseX:
+            self.direction = 0
+            self.walking = False
+
     def update(self, gooseX, currentMap):
         if self.sleeping:
             self.sprite[0] = 0

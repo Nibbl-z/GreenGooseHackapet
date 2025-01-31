@@ -13,7 +13,8 @@ class Goose:
             x=int(64 - 16), y=64
         )
         
-        self.x = 0
+        self.x = -100
+        self.sprite.flip_x = True
         
         self.passingOut = 0
         self.walking = False
@@ -23,7 +24,7 @@ class Goose:
         self.cameraFollow = True
         
         self.SPEED = 5
-        self.MAX_HEALTH = 5
+        self.MAX_HEALTH = 20
         self.health = self.MAX_HEALTH
         self.damaged = False
         self.hidden = False
@@ -31,6 +32,8 @@ class Goose:
         
         self.healthBar = Rect(0, 128-5, 128, 5, fill=0xFF0000)
         self.parrying = False
+
+        self.afterGatherX = 0
     
     def updateGooseWalk(self):
         self.walkFrame += 1

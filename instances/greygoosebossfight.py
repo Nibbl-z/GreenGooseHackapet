@@ -77,7 +77,7 @@ class GreyGooseBossfight:
         self.damaged = True
         self.damageTicks = 0
 
-        self.MAX_HEALTH = 1
+        self.MAX_HEALTH = 10
         self.health = self.MAX_HEALTH
         self.feathers = []
         
@@ -87,8 +87,10 @@ class GreyGooseBossfight:
         self.parryFeatherRequiredCount = 6
     
     def update(self, goose):
-        if self.health <= int(self.MAX_HEALTH / 2) and self.health > 0:
+        if self.health <= int(self.MAX_HEALTH / 2) and self.health > 0 and not self.sprite.hidden:
             self.angerSprite.hidden = False
+        else:
+            self.angerSprite.hidden = True
         
         if self.damaged:
             self.damageTicks += 1

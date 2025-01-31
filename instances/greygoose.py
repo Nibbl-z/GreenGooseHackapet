@@ -12,7 +12,7 @@ class GreyGoose:
             x=int(64 - 16), y=64
         )
         
-        self.x = 0
+        self.x = -10000
         
         self.passingOut = 0
         self.walking = False

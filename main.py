@@ -62,6 +62,7 @@ def winBossfight():
         goose.showHealth = False
         goose.sprite.flip_x = True
         goose.SPEED = 5
+        goose.frozen = True
         
         greygooseBossfight.sprite.hidden = True
         greygooseBossfight.healthBar.hidden = True
@@ -82,9 +83,40 @@ def winBossfight():
             stella.direction = 5
             stella.walking = True
             stella.sleeping = False
+            stella.sprite.flip_x = False
+            stella.customUpdate = stella.foughtGreygoose
 
             greygoose.passingOut = 2
 
+            def afterWait2():
+                def afterSpeak():
+                    stella.direction = -5
+                    stella.walking = True
+                    stella.sprite.flip_x = True
+                    goose.frozen = False
+                    
+                    goose.afterGatherX = goose.x + 250
+
+                    maps["outside_hotel"].parallax.appendFrame(ParallaxFrame(
+                        "assets/big_tree.bmp", 1, False, goose.x + 300
+                    ), splash)
+
+                    maps["outside_hotel"].leftBound = goose.x - 20
+
+                    maps["outside_hotel_sunset"].parallax.appendFrame(ParallaxFrame(
+                        "assets/big_tree.bmp", 1, False, goose.x + 300
+                    ), splash)
+                    
+                    maps["outside_hotel_sunset"].rightBound = goose.x + 260
+                    
+                    maps["outside_hotel"].triggers.append(Trigger(
+                        goose.x + 250, True, startGathering
+                    ))
+                
+                dialogue.speak("stella", stella.dialogues["afterFight"], afterSpeak, False)
+
+            timer.createAndStartTimer(50, afterWait2)
+        
         timer.createAndStartTimer(25, afterWait)
     
     timer.createAndStartTimer(6, afterFade)
@@ -248,13 +280,11 @@ def startGathering():
             mushroomScavenging.timerLabel.hidden = False
             mushroomScavenging.started = True
         
-        dialogue.speak(None, ["g"], afterDialogue, True)
-
-        later = [
+        dialogue.speak(None, [
         "Harvest mushrooms\nby pressing the\nmiddle button",
         "Discard poisonous\nspotted mushrooms\nwith the right\nbutton",
-        "Score at least 15 points to continue"
-        ]
+        "Score at least\n15 points to\ncontinue"
+        ], afterDialogue, True)
     
     timer.createAndStartTimer(6, afterFade)
 
@@ -276,9 +306,16 @@ def finishedGathering():
 
         print(currentMap)
         
+        goose.x = goose.afterGatherX
         goose.hidden = False
         goose.frozen = False
-
+        
+        stella.x = 260
+        stella.sleeping = True
+        stella.direction = 0
+        stella.walking = False
+        stella.map = "outside_hotel_sunset"
+    
     timer.createAndStartTimer(6, afterFade)
 
 def exitHotel():
@@ -305,6 +342,8 @@ def exitHotel():
                     stella.sprite.flip_x = True
                     dialogue.speak("stella", stella.dialogues["meetOutside3"], None, True)
 
+                    timer.createAndStartTimer(15, encounter)
+
                 dialogue.speak("stella", stella.dialogues["meetOutside2"], stellaScare, True)
                 
                 stella.direction = 5
@@ -326,7 +365,7 @@ def upstairsHotel():
 
         fade.direction = -1
         currentMap = "inside_hotel_floor2"
-        goose.x = 60 # 400
+        goose.x = 400
         goose.sprite.flip_x = False
     
     fade.direction = 1
@@ -367,10 +406,46 @@ def meetStella():
                 
                 stella.customUpdate = stella.metStellaUpstairs
             
-            dialogue.speak("stella", stella.dialogues["testing"], afterSpeak, False)
+            dialogue.speak("stella", stella.dialogues["meet"], afterSpeak, False)
         
         timer.createAndStartTimer(10, stellaSpeak)
 
+    timer.createAndStartTimer(10, afterWait)
+
+def ending():
+    goose.frozen = True
+    goose.sprite.flip_x = False
+
+    def afterWait():
+        stella.sleeping = False
+        stella.sprite.flip_x = False
+        
+        def afterWait2():
+            def afterTalk():
+                fade.direction = 1
+                
+                def afterFade():
+                    def afterTalk2():
+                        def afterWait3():
+                            fade.direction = 1
+                        
+                        timer.createAndStartTimer(20, afterWait3)
+
+                    global currentMap
+                    currentMap = "ending"
+                    fade.direction = -1
+                    goose.x = 0
+                    goose.frozen = True
+                    goose.hidden = True
+                    
+                    dialogue.speak("stella", stella.dialogues["ending2"], afterTalk2, False)
+                
+                timer.createAndStartTimer(6, afterFade)
+                
+            dialogue.speak("stella", stella.dialogues["ending"], afterTalk, False)
+        
+        timer.createAndStartTimer(15, afterWait2)
+    
     timer.createAndStartTimer(10, afterWait)
 
 maps = {
@@ -382,40 +457,42 @@ maps = {
     ),
     "outside_hotel" : Map(
         Parallax([
-            ParallaxFrame("assets/bg_sky.bmp", 0.1, True),
-            ParallaxFrame("assets/bg_hill.bmp", 0.2, True),
-            ParallaxFrame("assets/trees2.bmp", 0.5, True),
-            ParallaxFrame("assets/trees1.bmp", 0.6, True),
-            ParallaxFrame("assets/building.bmp", 0.9, False),
-            ParallaxFrame("assets/ground.bmp", 1, True),
+            ParallaxFrame("assets/bg_sky.bmp", 0.1, True, 0),
+            ParallaxFrame("assets/bg_hill.bmp", 0.2, True, 0),
+            ParallaxFrame("assets/trees2.bmp", 0.5, True, 0),
+            ParallaxFrame("assets/trees1.bmp", 0.6, True, 0),
+            ParallaxFrame("assets/building.bmp", 0.9, False, 0),
+            ParallaxFrame("assets/ground.bmp", 1, True, 0),
+            ParallaxFrame("assets/pond.bmp", 1, False, -100),
         ]),
         [
-            Interactable(110, 40, startGathering)
+            Interactable(110, 40, enterHotel)
         ],
         [],
-        -100000, 
+        -100, 
         100000
     ),
     "outside_hotel_sunset" : Map(
         Parallax([
-            ParallaxFrame("assets/bg_sky_sunset.bmp", 0.1, True),
-            ParallaxFrame("assets/bg_hill.bmp", 0.2, True),
-            ParallaxFrame("assets/trees2.bmp", 0.5, True),
-            ParallaxFrame("assets/trees1.bmp", 0.6, True),
-            ParallaxFrame("assets/building.bmp", 0.9, False),
-            ParallaxFrame("assets/ground.bmp", 1, True),
+            ParallaxFrame("assets/bg_sky_sunset.bmp", 0.1, True, 0),
+            ParallaxFrame("assets/bg_hill.bmp", 0.2, True, 0),
+            ParallaxFrame("assets/trees2.bmp", 0.5, True, 0),
+            ParallaxFrame("assets/trees1.bmp", 0.6, True, 0),
+            ParallaxFrame("assets/building.bmp", 0.9, False, 0),
+            ParallaxFrame("assets/ground.bmp", 1, True, 0),
+            ParallaxFrame("assets/pond.bmp", 1, False, -100),
         ]),
-        [
-            Interactable(110, 40, startGathering)
-        ],
         [],
-        -100000, 
+        [
+            Trigger(250, True, ending)
+        ],
+        -100, 
         100000
     ),
     
     "inside_hotel": Map(
         Parallax([
-            ParallaxFrame("assets/hotel_floor.bmp", 1, False)
+            ParallaxFrame("assets/hotel_floor.bmp", 1, False, 0)
         ]),
         [
             Interactable(-15, 30, exitHotel),
@@ -428,7 +505,7 @@ maps = {
 
     "inside_hotel_floor2": Map(
         Parallax([
-            ParallaxFrame("assets/hotel_floor2.bmp", 1, False)
+            ParallaxFrame("assets/hotel_floor2.bmp", 1, False, 0)
         ]),
         [
             Interactable(400, 50, downstairsHotel),
@@ -442,17 +519,24 @@ maps = {
 
     "encounter_1": Map(
         Parallax([
-            ParallaxFrame("assets/encounter1.bmp", 1, False)
+            ParallaxFrame("assets/encounter1.bmp", 1, False, 0)
         ]),
         [], [], -100, 100
     ),
 
     "encounter_2": Map(
         Parallax([
-            ParallaxFrame("assets/encounter2.bmp", 1, False)
+            ParallaxFrame("assets/encounter2.bmp", 1, False, 0)
         ]),
         [], [], -100, 100
     ),
+
+    "ending": Map(
+        Parallax([
+            ParallaxFrame("assets/ending.bmp", 1, False, 0)
+        ]),
+        [], [], -100, 100
+    )
 }
 
 for name, i in maps.items():
@@ -483,7 +567,7 @@ stella.x = 15
 greygoose = GreyGoose()
 splash.append(greygoose.sprite)
 greygoose.map = "inside_hotel"
-greygoose.x = 60
+greygoose.x = -10000
 greygoose.walking = True
 
 buttonIndicator = ButtonIndicator()
@@ -506,6 +590,7 @@ dialogue.loadSpeaker("assets/faces/stella.bmp", "stella")
 
 for name, speaker in dialogue.speakers.items():
     splash.append(speaker)
+
 
 while True:
     for event in pygame.event.get():
